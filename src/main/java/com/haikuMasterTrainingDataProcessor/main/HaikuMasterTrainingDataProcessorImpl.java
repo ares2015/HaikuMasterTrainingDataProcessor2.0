@@ -88,7 +88,7 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
         Word2Vec vec = new Word2Vec.Builder()
                 .minWordFrequency(20)
                 .useHierarchicSoftmax(true)
-                .iterations(15)
+                .iterations(5)
                 .layerSize(500)
                 .seed(42)
                 .windowSize(5)
