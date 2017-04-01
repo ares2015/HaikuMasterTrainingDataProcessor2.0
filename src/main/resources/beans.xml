@@ -1,0 +1,41 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="tokenizer" class="com.haikuMasterTrainingDataProcessor.tokenizer.TokenizerImpl"/>
+
+    <bean id="tagger" class="com.haikuMasterTrainingDataProcessor.tagger.PosTaggerImpl"/>
+
+    <bean id="sentenceFilter"
+          class="com.haikuMasterTrainingDataProcessor.preprocessor.filter.SentenceFilterImpl">
+        <constructor-arg ref="tokenizer"/>
+    </bean>
+
+    <bean id="reader" class="com.haikuMasterTrainingDataProcessor.reader.TextReaderImpl"/>
+
+    <bean id="writer" class="com.haikuMasterTrainingDataProcessor.writer.TrainingDataWriterImpl"/>
+
+    <bean id="trainingRawDataPreprocessor"
+          class="com.haikuMasterTrainingDataProcessor.preprocessor.TrainingRawDataPreprocessorImpl">
+        <constructor-arg ref="reader"/>
+        <constructor-arg ref="sentenceFilter"/>
+        <constructor-arg ref="writer"/>
+    </bean>
+
+    <bean id="tokenTagDataMultiListFactory"
+          class="com.haikuMasterTrainingDataProcessor.factory.TokenTagDataMultiListFactoryImpl">
+        <constructor-arg ref="tagger"/>
+    </bean>
+
+    <bean id="word2vecMatchTrainingRowFactory" class="com.haikuMasterTrainingDataProcessor.factory.Word2VecMatchTrainingRowFactoryImpl"/>
+
+    <bean id="haikuMasterTrainingDataProcessor"
+          class="com.haikuMasterTrainingDataProcessor.main.HaikuMasterTrainingDataProcessorImpl">
+        <constructor-arg ref="trainingRawDataPreprocessor"/>
+        <constructor-arg ref="tokenTagDataMultiListFactory"/>
+        <constructor-arg ref="writer"/>
+        <constructor-arg ref="word2vecMatchTrainingRowFactory"/>
+    </bean>
+
+</beans>
