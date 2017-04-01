@@ -15,6 +15,8 @@ import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFac
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.IOException;
 import java.util.*;
@@ -46,6 +48,13 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
         this.word2VecMatchTrainingRowFactory = word2VecMatchTrainingRowFactory;
     }
 
+    public static void main(String[] args) throws InterruptedException, IOException {
+        final ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        final HaikuMasterTrainingDataProcessor haikuMasterTrainingDataProcessor = (HaikuMasterTrainingDataProcessor) context.getBean("haikuMasterTrainingDataProcessor");
+        haikuMasterTrainingDataProcessor.preprocess();
+        haikuMasterTrainingDataProcessor.process();
+    }
+
     public void preprocess() throws IOException {
         trainingRawDataPreprocessor.preprocess();
     }
@@ -62,8 +71,8 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
         List<List<TokenTagData>> tokenTagDataMultiList = tokenTagDataMultiListFactory.create();
         String filePath = new ClassPathResource("HaikuMasterTextData.txt").getFile().getAbsolutePath();
 
-        log.info("Load & Vectorize Sentences....");
-        // Strip white space before and after for each line
+        System.out.println("Load & Vectorize Sentences....");
+//         Strip white space before and after for each line
         SentenceIterator iter = new BasicLineIterator(filePath);
         // Split on white spaces in the line to get words
         TokenizerFactory t = new DefaultTokenizerFactory();
@@ -75,7 +84,7 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
          */
         t.setTokenPreProcessor(new CommonPreprocessor());
 
-        log.info("Building model....");
+        System.out.println("Building model....");
         Word2Vec vec = new Word2Vec.Builder()
                 .minWordFrequency(20)
                 .useHierarchicSoftmax(true)
@@ -88,7 +97,7 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
                 .stopWords(new ArrayList<String>(StopWordsCache.stopWordsCache))
                 .build();
 
-        log.info("Fitting Word2Vec model....");
+        System.out.println("Fitting Word2Vec model....");
         vec.fit();
 
         for (int i = 0; i < tokenTagDataMultiList.size(); i++) {
@@ -100,7 +109,6 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
                     if (!tokenTagDataCache.get(token).contains(tag)) {
                         String tokenTagDataTrainingDataRow = token + "#" + tag;
                         tokenTagDataTrainingDataRows.add(tokenTagDataTrainingDataRow);
-
                         numberOfTaggedWords++;
                         tokenTagDataCache.get(token).add(tag);
                     }
@@ -115,10 +123,12 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
                 if (!vectorDataCache.contains(token)) {
                     vectorDataCache.add(token);
                     Collection<String> matches = vec.wordsNearest(token, 500);
-                    String trainingDataRow = word2VecMatchTrainingRowFactory.create(token, matches);
-                    System.out.println(trainingDataRow);
-                    word2VecTrainingDataRows.add(trainingDataRow);
-                    numberOfWord2VecWords++;
+                    if (matches.size() > 0) {
+                        String trainingDataRow = word2VecMatchTrainingRowFactory.create(token, matches);
+                        System.out.println(trainingDataRow);
+                        word2VecTrainingDataRows.add(trainingDataRow);
+                        numberOfWord2VecWords++;
+                    }
                 }
             }
         }
@@ -130,7 +140,5 @@ public class HaikuMasterTrainingDataProcessorImpl implements HaikuMasterTraining
         System.out.println("Data processed in " + (elapsedTime / 1000) / 60 + " minutes and " + (elapsedTime / 1000) % 60 + " seconds");
         System.out.println(numberOfTaggedWords + " token tags were added into tags model");
         System.out.println(numberOfWord2VecWords + " tokens were added into word2vec model");
-
-
     }
 }
