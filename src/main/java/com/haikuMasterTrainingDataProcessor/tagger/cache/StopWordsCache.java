@@ -48,6 +48,7 @@ public final class StopWordsCache {
         stopWordsCache.add("unless");
         stopWordsCache.add("rather");
         stopWordsCache.add("than");
+        stopWordsCache.add("then");
         stopWordsCache.add("while");
         stopWordsCache.add("if");
         stopWordsCache.add("else");
@@ -147,6 +148,12 @@ public final class StopWordsCache {
         stopWordsCache.add("why");
         stopWordsCache.add("there");
         stopWordsCache.add("here");
+        stopWordsCache.add("now");
+        stopWordsCache.add("again");
+        stopWordsCache.add("hence");
+
+
+
 
     }
 }
